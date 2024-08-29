@@ -61,40 +61,44 @@ node server.js --port 3030 --logs true --autosave 15000
 ### Uso Básico
 
 ```python
+import asyncio
 from database_client import DB, Types
 
-# Conectar
-await DB('connect', url='http://127.0.0.1:3030')
+async def main():
+    # Conectar
+    await DB('connect', url='http://127.0.0.1:3030')
 
-# Añadir un modelo
-model_data = {
-    "name": Types["STRING"],
-    "age": Types["NUMBER"],
-    "isActive": Types["BOOLEAN"]
-}
-await DB('addModel', name="User", data=model_data)
+    # Añadir un modelo
+    model_data = {
+        "name": Types["STRING"],
+        "age": Types["NUMBER"],
+        "isActive": Types["BOOLEAN"]
+    }
+    await DB('addModel', name="User", data=model_data)
 
-# Crear un documento
-user_data = {"name": "John Doe", "age": 30, "isActive": True}
-await DB('create', name="User", data=user_data)
+    # Crear un documento
+    user_data = {"name": "John Doe", "age": 30, "isActive": True}
+    await DB('create', name="User", data=user_data)
 
-# Buscar documentos
-result = await DB('find', name="User", param="name", equal="John Doe", number=1)
+    # Buscar documentos
+    result = await DB('find', name="User", param="name", equal="John Doe", number=1)
 
-# Actualizar un documento
-if result:
-    await DB('update', name="User", last_search=result, data={"age": 31})
-else:
-    await DB('update', name="User", search={"param": "name", "value": "John Doe"}, data={"age": 31})
+    # Actualizar un documento
+    if result:
+        await DB('update', name="User", last_search=result, data={"age": 31})
+    else:
+        await DB('update', name="User", search={"param": "name", "value": "John Doe"}, data={"age": 31})
 
-# Eliminar un documento
-await DB('destroy', name="User", search={"param": "name", "value": "John Doe"})
+    # Eliminar un documento
+    await DB('destroy', name="User", search={"param": "name", "value": "John Doe"})
 
-# Eliminar un modelo
-await DB('dropModel', name="User")
+    # Eliminar un modelo
+    await DB('dropModel', name="User")
 
-# Desconectar
-await DB('disconnect')
+    # Desconectar
+    await DB('disconnect')
+
+asyncio.run(main())
 ```
 
 ## 3. Cliente Node.js
