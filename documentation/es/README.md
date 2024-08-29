@@ -82,7 +82,10 @@ await DB('create', name="User", data=user_data)
 result = await DB('find', name="User", param="name", equal="John Doe", number=1)
 
 # Actualizar un documento
-await DB('update', name="User", search={"param": "name", "value": "John Doe"}, data={"age": 31})
+if result:
+    await DB('update', name="User", last_search=result, data={"age": 31})
+else:
+    await DB('update', name="User", search={"param": "name", "value": "John Doe"}, data={"age": 31})
 
 # Eliminar un documento
 await DB('destroy', name="User", search={"param": "name", "value": "John Doe"})
@@ -137,11 +140,19 @@ async function example() {
     console.log(result);
 
     // Actualizar un documento
-    await client.DB('update', { 
-      name: "User", 
-      search: { param: "name", value: "John Doe" }, 
-      data: { age: 31 } 
-    });
+    if (result) {
+        await client.DB('update', { 
+          name: "User", 
+          last_search: result,
+          data: { age: 31 } 
+        });
+    } else {
+        await client.DB('update', { 
+          name: "User", 
+          search: { param: "name", value: "John Doe" }, 
+          data: { age: 31 } 
+        });
+    }
 
     // Eliminar un documento
     await client.DB('destroy', { 
