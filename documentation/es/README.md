@@ -1,5 +1,3 @@
-Claro, aquí tienes una documentación completa del proyecto, incluyendo tanto el servidor como los clientes (Python y Node.js):
-
 # Documentación del Proyecto de Base de Datos JSON
 
 ## Descripción General
@@ -66,7 +64,7 @@ node server.js --port 3030
 from database_client import DB, Types
 
 # Conectar
-await DB('connect')
+await DB('connect', url='http://127.0.0.1:3030')
 
 # Añadir un modelo
 model_data = {
@@ -116,7 +114,7 @@ await DB('disconnect')
 ```javascript
 const { DatabaseClient, Types } = require('./database_client');
 
-const db = new DatabaseClient('http://152.206.201.225:3030');
+const client = new DatabaseClient('http://152.206.201.225:3030);
 
 async function example() {
   try {
@@ -128,36 +126,36 @@ async function example() {
       age: Types.NUMBER,
       isActive: Types.BOOLEAN
     };
-    await db.DB('addModel', { name: "User", data: modelData });
+    await client.DB('addModel', { name: "User", data: modelData });
 
     // Crear un documento
     const userData = { name: "John Doe", age: 30, isActive: true };
-    await db.DB('create', { name: "User", data: userData });
+    await client.DB('create', { name: "User", data: userData });
 
     // Buscar documentos
-    const result = await db.DB('find', { name: "User", param: "name", equal: "John Doe", number: 1 });
+    const result = await client.DB('find', { name: "User", param: "name", equal: "John Doe", number: 1 });
     console.log(result);
 
     // Actualizar un documento
-    await db.DB('update', { 
+    await client.DB('update', { 
       name: "User", 
       search: { param: "name", value: "John Doe" }, 
       data: { age: 31 } 
     });
 
     // Eliminar un documento
-    await db.DB('destroy', { 
+    await client.DB('destroy', { 
       name: "User", 
       search: { param: "name", value: "John Doe" } 
     });
 
     // Eliminar un modelo
-    await db.DB('dropModel', { name: "User" });
+    await client.DB('dropModel', { name: "User" });
 
   } catch (error) {
     console.error('Error:', error);
   } finally {
-    await db.disconnect();
+    await client.disconnect();
   }
 }
 
