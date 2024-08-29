@@ -20,6 +20,10 @@ Ideal for small to medium-sized projects, prototypes, and applications where tra
 
 Get started with JsonFlux and experience the fluidity of real-time JSON data handling!
 
+### 📬 Contact
+
+For more information about our services or for collaborations, do not hesitate to contact us through our GitHub profile or our official support profile on [Telegram](https://t.me/DevFast_Support). 📧
+
 --------------------------------------------------------------------------------------
 
 JsonFlux es un sistema de base de datos JSON ligero y en tiempo real con integración de Socket.IO. Ofrece una solución flexible y eficiente para aplicaciones que requieren operaciones de datos rápidas y actualizaciones en vivo.
@@ -41,3 +45,11 @@ Puedes encontrar la documentación [aquí](https://github.com/devfastproject/Jso
 Ideal para proyectos pequeños y medianos, prototipos y aplicaciones donde las bases de datos tradicionales podrían ser excesivas. JsonFlux combina la simplicidad de JSON con el poder de la comunicación en tiempo real, haciéndolo perfecto para aplicaciones web dinámicas, proyectos de IoT o cualquier escenario que requiera una gestión de datos rápida y flexible.
 
 ¡Comienza con JsonFlux y experimenta la fluidez del manejo de datos JSON en tiempo real!
+
+### 📬 Contacto
+
+Para obtener más información sobre nuestros servicios o colaboraciones, no dude en contactarnos a través de nuestro perfil de GitHub o nuestro perfil de soporte oficial en [Telegram](https://t.me/DevFast_Support). 📧
+
+--------------------------------------------------------------------------------
+
+![github-contribution-grid-snake](https://user-images.githubusercontent.com/106864876/179424426-29262e35-ab7b-4701-8ce3-8ed7db3d592b.svg)
