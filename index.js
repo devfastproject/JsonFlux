@@ -2,159 +2,108 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const yargs = require('yargs/yargs'); 
-const { hideBin } = require('yargs/helpers'); 
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
 
+//? ---------------------> CONFIGURACIÓN INICIAL <---------------------------- ?//
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-//? ---------------------> DB CONFIG <---------------------------- ?//
+//? ---------------------> CONFIGURACIÓN DE LA BASE DE DATOS <---------------------------- ?//
 const jsonDbManager = require("./json-db-manager/json-db-manager.js");
 const path = __dirname + "/DB.json";
 const opts = {
-    autosave: 15000, 
-    logs: true 
+    autosave: 15000,  // Guardado automático cada 15 segundos
+    logs: true        // Activar logs para seguimiento de operaciones
 };
 const db = jsonDbManager(path, opts);
 
+//? ---------------------> MIDDLEWARE <---------------------------- ?//
 app.use(express.json());
 
-//? ---------------------> YARGS CONFIG <---------------------------- ?//
-const argv = yargs(hideBin(process.argv)).option('port', {
-  alias: 'p',
-  type: 'number',
-  description: 'Puerto en el que correrá el servidor',
-  default: 3030 
-}).argv;
+//? ---------------------> CONFIGURACIÓN DE ARGUMENTOS <---------------------------- ?//
+const argv = yargs(hideBin(process.argv))
+    .option('port', {
+        alias: 'p',
+        type: 'number',
+        description: 'Puerto en el que correrá el servidor',
+        default: 3030
+    }).argv;
 
 const PORT = argv.port;
 
-//? ---------------------> RUTAS EXPRESS <---------------------------- ?//
+//? ---------------------> RUTA PRINCIPAL <---------------------------- ?//
 app.get('/', (req, res) => {
-  res.send({ status: 'Active' }).status(200);
+    res.send({ status: 'Active', message: 'Bienvenido a JsonFlux' }).status(200);
 });
 
-//? ---------------------> SOCKET.IO HANDLERS <---------------------------- ?//
+//? ---------------------> CONFIGURACIÓN DE SOCKET.IO <---------------------------- ?//
 io.on('connection', (socket) => {
-  console.log('¡Administrador conectado!');
+    console.log('Nuevo cliente conectado');
 
-  //? -----> Añadir Modelo <----- //
-  socket.on('addModel', (params) => {
-    params = JSON.parse(params);
-    console.log(params);
-    db.addModel(params.name, params.data);
-    socket.emit('response', JSON.stringify({ message: 'The new model has been created.' }));
-  });
+    //! -----> Función auxiliar para operaciones de DB <----- !//
+    const handleDbOperation = async (operation, params, callback) => {
+        try {
+            const result = await db[operation](params.name, ...Object.values(params).slice(1));
+            callback(JSON.stringify(result));
+        } catch (error) {
+            console.error(`Error en operación ${operation}:`, error);
+            callback(JSON.stringify({ error: error.message }));
+        }
+    };
 
-  //? -----> Crear Elemento <----- //
-  socket.on('create', (params) => {
-    params = JSON.parse(params);
-    console.log(params);
-    const new_element = db.create(params.name, params.data);
-    socket.emit('response', JSON.stringify(new_element));
-  });
+    //! -----> Mapeo de eventos a operaciones de DB <----- !//
+    const dbOperations = {
+        'addModel': (params, cb) => handleDbOperation('addModel', params, cb),
+        'create': (params, cb) => handleDbOperation('create', params, cb),
+        'find': (params, cb) => handleDbOperation('find', params, cb),
+        'getModel': (params, cb) => handleDbOperation('find', params, cb),
+        'update': (params, cb) => handleDbOperation('update', params, cb),
+        'destroy': (params, cb) => handleDbOperation('destroy', params, cb),
+        'dropModel': (params, cb) => handleDbOperation('drop', params, cb)
+    };
 
-  //? -----> Encontrar Elemento <----- //
-  socket.on('find', (params) => {
-    params = JSON.parse(params);
-    console.log(params);
-    let users = db.find(params.name, {
-      where: (data) => data[params.param] == params.equal,
-      limit: Number(params.number)
+    //! -----> Registro de eventos para cada operación <----- !//
+    Object.entries(dbOperations).forEach(([event, handler]) => {
+        socket.on(event, (rawParams, callback) => {
+            const params = JSON.parse(rawParams);
+            console.log(`Operación solicitada: ${event}`, params);
+            handler(params, callback);
+        });
     });
-    socket.emit('response', JSON.stringify(users));
-  });
 
-  //? -----> Obtener Modelo <----- //
-  socket.on('getModel', (params) => {
-    params = JSON.parse(params);
-    console.log(params);
-    let users = db.find(params.name);
-    console.log(users)
-    socket.emit('response', JSON.stringify(users));
-  });
-
-  //? -----> Actualizar Elemento <----- //
-  socket.on('update', (params) => {
-    params = JSON.parse(params);
-    console.log(params);
-    let user = db.find(params.name, {
-      where: (data) => data[params.search.param] == params.search.value,
-      limit: 1
+    //! -----> Manejo de desconexión <----- !//
+    socket.on('disconnect', () => {
+        console.log('Cliente desconectado');
     });
-    const updtUs = db.update(params.name, user, params.data);
-    socket.emit('response', JSON.stringify(updtUs));
-  });
+});
 
-  //? -----> Eliminar Elemento <----- //
-  socket.on('destroy', (params) => {
-    params = JSON.parse(params);
-    console.log(params);
-    let user = db.find(params.name, {
-      where: (data) => data[params.search.param] == params.search.value,
-      limit: 1
+//? ---------------------> ENDPOINTS EXPRESS <---------------------------- ?//
+const expressOperations = {
+    '/addModel': (req, res) => db.addModel(req.body.name, req.body.data),
+    '/create': (req, res) => db.create(req.body.name, req.body.data),
+    '/find': (req, res) => db.find(req.body.name, req.body.where, req.body.limit),
+    '/update': (req, res) => db.update(req.body.name, req.body.search, req.body.data),
+    '/destroy': (req, res) => db.destroy(req.body.name, req.body.search),
+    '/dropModel': (req, res) => db.drop(req.body.name)
+};
+
+//! -----> Creación de rutas POST para cada operación <----- !//
+Object.entries(expressOperations).forEach(([path, operation]) => {
+    app.post(path, async (req, res) => {
+        try {
+            const result = await operation(req, res);
+            res.json(result);
+        } catch (error) {
+            console.error(`Error en ruta ${path}:`, error);
+            res.status(500).json({ error: error.message });
+        }
     });
-    const destroy = db.destroy(params.name, user);
-    socket.emit('response', JSON.stringify(destroy));
-  });
-
-  //? -----> Eliminar Modelo <----- //
-  socket.on('dropModel', (params) => {
-    params = JSON.parse(params);
-    console.log(`Eliminando modelo: ${params.name}`);
-    db.drop(params.name);
-    socket.emit('response', JSON.stringify({ message: `El modelo ${params.name} ha sido eliminado.` }));
-  });
-
-  socket.on('disconnect', () => {
-    console.log('¡Administrador desconectado!');
-  });
 });
 
-//? ---------------------> EXPRESS POST ENDPOINTS <---------------------------- ?//
-
-app.post('/addModel', (req, res) => {
-  const params = typeof req.body.params === 'object' || typeof req.body.params === 'array' ? req.body.params : JSON.parse(req.body.params);
-  const new_model = db.addModel(params.name, params.data);
-  res.send(JSON.stringify(new_model));
-});
-
-app.post('/create', (req, res) => {
-  const params = typeof req.body.params === 'object' || typeof req.body.params === 'array' ? req.body.params : JSON.parse(req.body.params);
-  const new_element = db.create(params.name, params.data);
-  res.send(JSON.stringify(new_element));
-});
-
-app.post('/find', (req, res) => {
-  const params = typeof req.body.params === 'object' || typeof req.body.params === 'array' ? req.body.params : JSON.parse(req.body.params);
-  let users = db.find(params.name, {
-    where: (data) => data[params.param] == params.equal,
-    limit: Number(params.number)
-  });
-  res.send(JSON.stringify(users));
-});
-
-app.post('/update', (req, res) => {
-  const params = typeof req.body.params === 'object' || typeof req.body.params === 'array' ? req.body.params : JSON.parse(req.body.params);
-  const updtUs = db.update(params.name, params.last_search, params.data);
-  res.send(JSON.stringify(updtUs));
-});
-
-app.post('/destroy', (req, res) => {
-  const params = typeof req.body.params === 'object' || typeof req.body.params === 'array' ? req.body.params : JSON.parse(req.body.params);
-  const destroy = db.destroy(params.name, params.last_search);
-  res.send(JSON.stringify(destroy));
-});
-
-//? -----> Nueva ruta POST para eliminar modelo <----- //
-app.post('/dropModel', (req, res) => {
-  const params = typeof req.body.params === 'object' || typeof req.body.params === 'array' ? req.body.params : JSON.parse(req.body.params);
-  db.drop(params.name);
-  res.send(JSON.stringify({ message: `El modelo ${params.name} ha sido eliminado.` }));
-});
-
-//? -----> Iniciar Servidor <----- //
+//? ---------------------> INICIO DEL SERVIDOR <---------------------------- ?//
 server.listen(PORT, () => {
-  console.log(`Servidor Express y Socket.IO iniciado en el puerto ${PORT}`);
+    console.log(`Servidor JsonFlux iniciado en el puerto ${PORT}`);
+    console.log('Esperando conexiones...');
 });
