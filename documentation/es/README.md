@@ -1,4 +1,4 @@
-# Documentación del Proyecto de Base de Datos JSON
+# Documentación del Proyecto JsonFlux
 
 ## Descripción General
 
