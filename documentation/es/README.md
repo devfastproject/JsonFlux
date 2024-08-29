@@ -117,7 +117,7 @@ await DB('disconnect')
 ```javascript
 const { DatabaseClient, Types } = require('./database_client');
 
-const client = new DatabaseClient('http://152.206.201.225:3030);
+const client = new DatabaseClient('http://152.206.201.225:3030');
 
 async function example() {
   try {
