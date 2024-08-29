@@ -1,14 +1,14 @@
 {
-  "name": "portabd",
+  "name": "jsonflux",
   "version": "1.0.0",
-  "description": "",
+  "description": "A database on your own server in real time that allows you to save all the data of your apps in one place in a very efficient and private way, without limits or third-party problems",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["database", "json", "socket-io", "python3", "nodejs-server"],
+  "author": "DevFast Project",
+  "license": "Apache2.0",
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.7.4",
