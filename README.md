@@ -14,7 +14,7 @@ JsonFlux is a lightweight, real-time JSON database system with Socket.IO integra
 
 ## Documentation:
 
-You can find the documentation (here)[https://github.com/devfastproject/JsonFlux/blob/main/documentation/en/README.md]
+You can find the documentation [here](https://github.com/devfastproject/JsonFlux/blob/main/documentation/en/README.md)
 
 Ideal for small to medium-sized projects, prototypes, and applications where traditional databases might be overkill. JsonFlux combines the simplicity of JSON with the power of real-time communication, making it perfect for dynamic web applications, IoT projects, or any scenario requiring fast, flexible data management.
 
@@ -36,7 +36,7 @@ JsonFlux es un sistema de base de datos JSON ligero y en tiempo real con integra
 
 ## Documentación:
 
-Puedes encontrar la documentación (aquí)[https://github.com/devfastproject/JsonFlux/blob/main/documentation/es/README.md]
+Puedes encontrar la documentación [aquí](https://github.com/devfastproject/JsonFlux/blob/main/documentation/es/README.md)
 
 Ideal para proyectos pequeños y medianos, prototipos y aplicaciones donde las bases de datos tradicionales podrían ser excesivas. JsonFlux combina la simplicidad de JSON con el poder de la comunicación en tiempo real, haciéndolo perfecto para aplicaciones web dinámicas, proyectos de IoT o cualquier escenario que requiera una gestión de datos rápida y flexible.
 
