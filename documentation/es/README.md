@@ -40,7 +40,7 @@ Este proyecto implementa un sistema de base de datos JSON con un servidor y clie
 El servidor se puede configurar mediante argumentos de línea de comandos:
 
 ```
-node server.js --port 3030
+node server.js --port 3030 --logs true --autosave 15000
 ```
 
 ## 2. Cliente Python
