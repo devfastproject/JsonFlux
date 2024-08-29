@@ -68,7 +68,7 @@ const handleRequest = (operation, params) => {
         target = db.find(name, {
           where: (data) => data[search] == value,
           limit: 1
-        })[0];
+        });
       }
       return target ? db.update(name, target, data) : null;
 
