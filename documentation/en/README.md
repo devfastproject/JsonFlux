@@ -61,40 +61,68 @@ node server.js --port 3030 --logs true --autosave 15000
 ### Basic Usage
 
 ```python
-from database_client import DB, Types
+import asyncio
+from database_client import execute, Types, connect, disconnect
 
-# Conectar
-await DB('connect', url='http://127.0.0.1:3030')
 
-# Añadir un modelo
-model_data = {
-    "name": Types["STRING"],
-    "age": Types["NUMBER"],
-    "isActive": Types["BOOLEAN"]
-}
-await DB('addModel', name="User", data=model_data)
+async def main():
+    # Conectar
+    await connect("http://127.0.0.1:3030")
 
-# Crear un documento
-user_data = {"name": "John Doe", "age": 30, "isActive": True}
-await DB('create', name="User", data=user_data)
+    # Añadir un modelo
+    model_data = {
+        "name": {
+            "type": Types["STRING"],
+            "allowNull": False,
+            "unique": True,
+        },
+        "age": {
+            "type": Types["NUMBER"],
+            "allowNull": False,
+            "unique": True,
+        },
+        "isActive": {
+            "type": Types["BOOLEAN"],
+            "allowNull": False,
+            "unique": True,
+        },
+    }
+    await execute("addModel", name="UserTest", data=model_data)
 
-# Buscar documentos
-result = await DB('find', name="User", param="name", equal="John Doe", number=1)
+    # Crear un documento
+    user_data = {"name": "John Doe", "age": 30, "isActive": True}
+    await execute("create", name="UserTest", data=user_data)
 
-# Actualizar un documento
-if result:
-    await DB('update', name="User", last_search=result, data={"age": 31})
-else:
-    await DB('update', name="User", search={"param": "name", "value": "John Doe"}, data={"age": 31})
+    # Buscar documentos
+    result = await execute(
+        "find", name="UserTest", param="name", equal="John Doe", number=1
+    )
 
-# Eliminar un documento
-await DB('destroy', name="User", search={"param": "name", "value": "John Doe"})
+    # Actualizar un documento
+    if result:
+        print("Se ejecutó")
+        await execute("update", name="UserTest", last_search=result, data={"age": 31})
+    else:
+        await execute(
+            "update",
+            name="UserTest",
+            search={"param": "name", "value": "John Doe"},
+            data={"age": 31},
+        )
 
-# Eliminar un modelo
-await DB('dropModel', name="User")
+    # Eliminar un documento
+    await execute(
+        "destroy", name="UserTest", search={"param": "name", "value": "John Doe"}
+    )
 
-# Desconectar
-await DB('disconnect')
+    # Eliminar un modelo
+    await execute("dropModel", name="UserTest")
+
+    # Desconectar
+    await disconnect()
+
+
+asyncio.run(main())
 ```
 
 ## 3. Node.js Client
@@ -121,13 +149,25 @@ const client = new DatabaseClient('http://127.0.0.1:3030');
 
 async function example() {
   try {
-    await db.connect();
+    await client.connect();
 
     // Añadir un modelo
     const modelData = {
-      name: Types.STRING,
-      age: Types.NUMBER,
-      isActive: Types.BOOLEAN
+      name: {
+        type: Types.STRING,
+        allowNull: false,
+        unique: true
+      },
+      age: {
+        type: Types.NUMBER,
+        allowNull: false,
+        unique: false
+      },
+      isActive: {
+        type: Types.BOOLEAN,
+        allowNull: false,
+        unique: false
+      }
     };
     await client.DB('addModel', { name: "User", data: modelData });
 
