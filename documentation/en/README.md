@@ -29,11 +29,10 @@ This project implements a JSON database system with a server and clients in Pyth
 
 1. `addModel`: Adds a new model to the database
 2. `create`: Creates a new document in a specific model
-3. `find`: Searches for documents in a model
-4. `getModel`: Retrieves all documents from a model
-5. `update`: Updates an existing document
-6. `destroy`: Deletes a document
-7. `dropModel`: Deletes an entire model
+3. `find`: Search for documents in a model or get all documents in a model if only the name is specified
+4. `update`: Updates an existing document
+5. `destroy`: Deletes a document
+6. `dropModel`: Deletes an entire model
 
 ### Configuration
 
