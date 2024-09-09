@@ -29,11 +29,10 @@ Este proyecto implementa un sistema de base de datos JSON con un servidor y clie
 
 1. `addModel`: Añade un nuevo modelo a la base de datos
 2. `create`: Crea un nuevo documento en un modelo específico
-3. `find`: Busca documentos en un modelo
-4. `getModel`: Obtiene todos los documentos de un modelo
-5. `update`: Actualiza un documento existente
-6. `destroy`: Elimina un documento
-7. `dropModel`: Elimina un modelo completo
+3. `find`: Busca documentos en un modelo u obtiene todos los documentos de un modelo si solo se especifica el nombre
+4. `update`: Actualiza un documento existente
+5. `destroy`: Elimina un documento
+6. `dropModel`: Elimina un modelo completo
 
 ### Configuración
 
