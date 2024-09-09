@@ -44,52 +44,45 @@ app.use(express.json());
 const handleRequest = (operation, params) => {
   const { name, data, param, equal, number, search, value, last_search } = params;
 
-  switch (operation) {
-    case 'addModel':
-      return db.addModel(name, data);
+  try {
+    switch (operation) {
+      case 'addModel':
+        db.addModel(name, data.length === 1 ? data[0] : data);
+        return { message: 'Modelo agregado' };
 
-    case 'create':
-      return db.create(name, data);
+      case 'create':
+        const result = db.create(name, data.length === 1 ? data[0] : data);
+        return typeof result === 'object' ? result : { message: result };
 
-    case 'find':
-      if (param && equal) {
-        return db.find(name, {
-          where: (data) => data[param] == equal,
-          limit: Number(number)
-        });
-      }
-      return db.find(name);
+      case 'find':
+        return param && equal 
+          ? db.find(name, { where: (data) => data[param] == equal, limit: Number(number) }) 
+          : db.find(name);
 
-    case 'update':
-      let target;
-      if (last_search) {
-        target = last_search;
-      } else if (search && value) {
-        target = db.find(name, {
+      case 'update':
+        const target = last_search || (search && db.find(name, {
+          where: (data) => data[search.param] == search.value,
+          limit: 1
+        }));
+        return target ? db.update(name, target, data.length === 1 ? data[0] : data) : null;
+
+      case 'destroy':
+        const toDestroy = last_search || (search && value && db.find(name, {
           where: (data) => data[search] == value,
           limit: 1
-        });
-      }
-      return target ? db.update(name, target, data) : null;
+        })[0]);
+        return toDestroy ? db.destroy(name, toDestroy) : null;
 
-    case 'destroy':
-      let toDestroy;
-      if (last_search) {
-        toDestroy = last_search;
-      } else if (search && value) {
-        toDestroy = db.find(name, {
-          where: (data) => data[search] == value,
-          limit: 1
-        })[0];
-      }
-      return toDestroy ? db.destroy(name, toDestroy) : null;
+      case 'dropModel':
+        db.drop(name);
+        return { message: `El modelo ${name} ha sido eliminado.` };
 
-    case 'dropModel':
-      db.drop(name);
-      return { message: `El modelo ${name} ha sido eliminado.` };
-
-    default:
-      return null;
+      default:
+        return { error: 'Operación no válida' };
+    }
+  } catch (error) {
+    console.error(`Error en operación ${operation}:`, error);
+    return { error: `Error en operación ${operation}: ${error.message}` };
   }
 };
 
@@ -97,12 +90,18 @@ const handleRequest = (operation, params) => {
 
 const socketHandler = (socket) => {
   console.log('¡Administrador conectado!');
-
+  
   const operations = ['addModel', 'create', 'find', 'getModel', 'update', 'destroy', 'dropModel'];
+  
   operations.forEach(operation => {
     socket.on(operation, (params) => {
-      const result = handleRequest(operation, JSON.parse(params));
-      socket.emit('response', JSON.stringify(result));
+      try {
+        const parsedParams = JSON.parse(params);
+        const result = handleRequest(operation, parsedParams);
+        socket.emit('response', JSON.stringify(result));
+      } catch (error) {
+        socket.emit('response', JSON.stringify({ error: `Error al procesar la solicitud: ${error.message}` }));
+      }
     });
   });
 
@@ -113,12 +112,16 @@ io.on('connection', socketHandler);
 
 //? ---------------------> RUTAS HTTP <---------------------------- ?//
 
-app.get('/', (req, res) => res.send({ status: 'Active' }).status(200));
+app.get('/', (req, res) => res.status(200).send({ status: 'Active' }));
 
 const postHandler = (req, res) => {
-  const params = typeof req.body.params === 'object' ? req.body.params : JSON.parse(req.body.params);
-  const result = handleRequest(req.path.slice(1), params);
-  res.send(JSON.stringify(result));
+  try {
+    const params = typeof req.body.params === 'object' ? req.body.params : JSON.parse(req.body.params);
+    const result = handleRequest(req.path.slice(1), params);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: `Error al procesar la solicitud: ${error.message}` });
+  }
 };
 
 ['addModel', 'create', 'find', 'update', 'destroy', 'dropModel'].forEach(operation => {
