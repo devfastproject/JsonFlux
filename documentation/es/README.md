@@ -62,41 +62,65 @@ node server.js --port 3030 --logs true --autosave 15000
 
 ```python
 import asyncio
-from database_client import DB, Types
+from database_client import execute, Types, connect, disconnect
+
 
 async def main():
     # Conectar
-    await DB('connect', url='http://127.0.0.1:3030')
+    await connect("http://127.0.0.1:3030")
 
     # Añadir un modelo
     model_data = {
-        "name": Types["STRING"],
-        "age": Types["NUMBER"],
-        "isActive": Types["BOOLEAN"]
+        "name": {
+            "type": Types["STRING"], # La key "name" debe ser tipo String
+            "allowNull": False, # La ley "name" no debe ser nulo al crearse un nuevo usuario
+            "unique": True, # La key "name" debe ser único para cada usuario, no se puede repetir
+        },
+        "age": {
+            "type": Types["NUMBER"],
+            "allowNull": False,
+            "unique": False,
+        },
+        "isActive": {
+            "type": Types["BOOLEAN"],
+            "allowNull": False,
+            "unique": False,
+        },
     }
-    await DB('addModel', name="User", data=model_data)
+    await execute("addModel", name="UserTest", data=model_data)
 
     # Crear un documento
     user_data = {"name": "John Doe", "age": 30, "isActive": True}
-    await DB('create', name="User", data=user_data)
+    await execute("create", name="UserTest", data=user_data)
 
     # Buscar documentos
-    result = await DB('find', name="User", param="name", equal="John Doe", number=1)
+    result = await execute(
+        "find", name="UserTest", param="name", equal="John Doe", number=1
+    )
 
     # Actualizar un documento
     if result:
-        await DB('update', name="User", last_search=result, data={"age": 31})
+        print("Se ejecutó")
+        await execute("update", name="UserTest", last_search=result, data={"age": 31})
     else:
-        await DB('update', name="User", search={"param": "name", "value": "John Doe"}, data={"age": 31})
+        await execute(
+            "update",
+            name="UserTest",
+            search={"param": "name", "value": "John Doe"},
+            data={"age": 31},
+        )
 
     # Eliminar un documento
-    await DB('destroy', name="User", search={"param": "name", "value": "John Doe"})
+    await execute(
+        "destroy", name="UserTest", search={"param": "name", "value": "John Doe"}
+    )
 
     # Eliminar un modelo
-    await DB('dropModel', name="User")
+    await execute("dropModel", name="UserTest")
 
     # Desconectar
-    await DB('disconnect')
+    await disconnect()
+
 
 asyncio.run(main())
 ```
@@ -125,13 +149,25 @@ const client = new DatabaseClient('http://127.0.0.1:3030');
 
 async function example() {
   try {
-    await db.connect();
+    await client.connect();
 
     // Añadir un modelo
     const modelData = {
-      name: Types.STRING,
-      age: Types.NUMBER,
-      isActive: Types.BOOLEAN
+      name: {
+        type: Types.STRING,
+        allowNull: false,
+        unique: true
+      },
+      age: {
+        type: Types.NUMBER,
+        allowNull: false,
+        unique: false
+      },
+      isActive: {
+        type: Types.BOOLEAN,
+        allowNull: false,
+        unique: false
+      }
     };
     await client.DB('addModel', { name: "User", data: modelData });
 
