@@ -72,9 +72,9 @@ async def main():
     # Añadir un modelo
     model_data = {
         "name": {
-            "type": Types["STRING"],
-            "allowNull": False,
-            "unique": True,
+            "type": Types["STRING"], # La key "name" debe ser tipo String
+            "allowNull": False, # La ley "name" no debe ser nulo al crearse un nuevo usuario
+            "unique": True, # La key "name" debe ser único para cada usuario, no se puede repetir
         },
         "age": {
             "type": Types["NUMBER"],
